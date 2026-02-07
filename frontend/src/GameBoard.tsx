@@ -317,16 +317,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
               ) : (
                 <>
                   {game.turn() === 'w' ? "White's Turn" : "Black's Turn"}
-                  {evaluation && (
-                    <span style={{ 
-                      marginLeft: '15px', 
-                      fontSize: '1rem', 
-                      opacity: 0.8,
-                      color: '#7fbf7f'
-                    }}>
-                      {evaluation}
-                    </span>
-                  )}
+                  
                 </>
               )}
             </div>
@@ -396,7 +387,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
                         style={{
                           width: '100%',
                           padding: '16px',
-                          background: '#7cb342',
+                          background: '#ff8c42',
                           border: 'none',
                           borderRadius: '8px',
                           color: '#ffffff',
@@ -411,7 +402,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
                           e.currentTarget.style.transform = 'translateY(-2px)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = '#7cb342';
+                          e.currentTarget.style.background = '#ff8c42';
                           e.currentTarget.style.transform = 'translateY(0)';
                         }}
                       >
@@ -484,7 +475,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
                         style={{
                           width: '100%',
                           padding: '16px',
-                          background: '#7cb342',
+                          background: '#ff8c42',
                           border: 'none',
                           borderRadius: '8px',
                           color: '#ffffff',
@@ -495,11 +486,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
                           transition: 'all 0.2s'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#8bc34a';
+                          e.currentTarget.style.background = '#f69456';
                           e.currentTarget.style.transform = 'translateY(-2px)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = '#7cb342';
+                          e.currentTarget.style.background = '#ff8c42';
                           e.currentTarget.style.transform = 'translateY(0)';
                         }}
                       >

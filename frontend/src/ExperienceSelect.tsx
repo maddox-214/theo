@@ -15,7 +15,6 @@ type ExperienceSelectProps = {
     playerColor: 'white' | 'black';
     startFen: string;
   }) => void;
-  setAvatar: React.Dispatch<React.SetStateAction<string>>;
 };
 
 const levels: Level[] = [
@@ -25,7 +24,7 @@ const levels: Level[] = [
   { name: "Master", piece: "public/images/tiny_queen_white.png", bigPiece:"public/images/queen_white.png", elo: 2000 },
 ];
 
-const ExperienceSelect: React.FC<ExperienceSelectProps> = ({ onGameCreated, setAvatar }) => {
+const ExperienceSelect: React.FC<ExperienceSelectProps> = ({ onGameCreated }) => {
   const [loading, setLoading] = useState(false);
   // new animation states (commented out for now)
   // const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
@@ -49,8 +48,6 @@ const ExperienceSelect: React.FC<ExperienceSelectProps> = ({ onGameCreated, setA
         color: game.player_color,
         startFen: game.start_fen
       });
-
-      setAvatar(level.bigPiece);
       
       // old code - navigate immediately
       onGameCreated({
