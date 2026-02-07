@@ -714,6 +714,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
                     className={`square ${isDark ? "dark" : ""} ${isSelected ? "selected" : ""} ${isLegalMove ? "legal-move" : ""}`}
                     onClick={() => handleSquareClick(square)}
                   >
+                    {/* Coordinates: file letters along bottom, ranks along left */}
+                    {col === 0 && (
+                      <span className="square-rank-label">{square[1]}</span>
+                    )}
+                    {row === 7 && (
+                      <span className="square-file-label">{square[0]}</span>
+                    )}
                     {isLegalMove && (
                       <div className="move-indicator" />
                     )}
