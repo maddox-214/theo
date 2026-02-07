@@ -104,7 +104,8 @@ body {
   display: flex;
   background: linear-gradient(180deg, #3a3a3a, #1e1e1e);
   color: white;
-  align-items: stretch; 
+  align-items: stretch;
+  position: relative;
 }
 
 .game-board-area {
@@ -114,6 +115,62 @@ body {
   align-items: center;
   height: 600px;
   width: 600px;
+}
+
+/* Move history panel (top-right) */
+.move-history-panel {
+  position: fixed;
+  top: 90px;
+  right: 0;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 8px 12px;
+  border-radius: 8px;
+  min-width: 170px;
+  max-width: 220px;
+  font-size: 0.8rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+}
+
+.move-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  margin-bottom: 6px;
+}
+
+.move-history-title {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #fff;
+  font-weight: 500;
+}
+
+.move-history-toggle {
+  font-size: 0.7rem;
+  color: #fff;
+  transition: transform 0.2s;
+}
+
+.move-history-body {
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.move-history-empty {
+  margin: 0;
+  opacity: 0.5;
+  font-size: 0.75rem;
+}
+
+.move-history-list {
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.move-history-item {
+  margin-bottom: 2px;
+  color: #ddd;
 }
 
 

@@ -438,6 +438,40 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   return (
     <div className="game-root">
+      {/* Move history (top-right) */}
+      <div className="move-history-panel">
+        <div
+          className="move-history-header"
+          onClick={() => setShowMoveHistory(!showMoveHistory)}
+        >
+          <h3 className="move-history-title">Move History</h3>
+          <span
+            className="move-history-toggle"
+            style={{
+              transform: showMoveHistory ? "rotate(180deg)" : "rotate(0deg)",
+            }}
+          >
+            ▼
+          </span>
+        </div>
+
+        {showMoveHistory && (
+          <div className="move-history-body">
+            {moveHistory.length === 0 ? (
+              <p className="move-history-empty">No moves yet</p>
+            ) : (
+              <div className="move-history-list">
+                {moveHistory.map((move, index) => (
+                  <div key={index} className="move-history-item">
+                    {index + 1}. {move}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* LEFT SIDE: Chess board area (70%) */}
       <div className="game-board-area">
         <div className="board-wrapper">
@@ -779,52 +813,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
           className="mascot"
           alt="Instructor"
         />
-        
-        {/* Move history */}
-        <div style={{
-          background: 'rgba(0, 0, 0, 0.2)',
-          padding: '8px 12px',
-          borderRadius: '6px',
-          marginTop: '15px',
-        }}>
-          <div 
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'space-between',
-              cursor: 'pointer',
-              marginBottom: showMoveHistory ? '8px' : '0'
-            }}
-            onClick={() => setShowMoveHistory(!showMoveHistory)}
-          >
-            <h3 style={{ margin: 0, fontSize: '0.85rem', color: '#fff', fontWeight: '500' }}>Move History</h3>
-            <span style={{ 
-              fontSize: '0.7rem', 
-              color: '#fff',
-              transform: showMoveHistory ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 0.2s'
-            }}>
-              ▼
-            </span>
-          </div>
-          
-          {showMoveHistory && (
-            <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
-              {moveHistory.length === 0 ? (
-                <p style={{ margin: 0, opacity: 0.5, fontSize: '0.75rem' }}>No moves yet</p>
-              ) : (
-                <div style={{ fontSize: '0.75rem', lineHeight: '1.4' }}>
-                  {moveHistory.map((move, index) => (
-                    <div key={index} style={{ marginBottom: '2px', color: '#ddd' }}>
-                      {index + 1}. {move}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-        
+
         {/* Exit button */}
         {onExit && (
           <button
