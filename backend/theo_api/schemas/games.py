@@ -49,6 +49,11 @@ class MoveResponse(BaseModel):
 
     pv: list[str] = []
     top_moves: list[AnalysisLine] = []
+    
+    # Game outcome detection
+    game_over: bool = False
+    outcome: Optional[Literal["checkmate", "stalemate", "insufficient_material", "fifty_move", "threefold", "draw"]] = None
+    winner: Optional[Color] = None
 
 
 class GameStateResponse(BaseModel):

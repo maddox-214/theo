@@ -45,6 +45,9 @@ export interface MoveResponse {
   mate_player: number | null;
   pv: string[];
   top_moves: AnalysisLine[];
+  game_over?: boolean;
+  outcome?: "checkmate" | "stalemate" | "insufficient_material" | "fifty_move" | "threefold" | "draw" | null;
+  winner?: PlayerColor | null;
 }
 
 export interface GameStateResponse {

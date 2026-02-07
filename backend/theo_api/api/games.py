@@ -143,6 +143,24 @@ def submit_move(game_id: str, req: SubmitMoveRequest, db: Session = Depends(get_
         g.status = "finished"
         repo.save_game(db, g)
 
+        # outcome logic here
+        outcome = None
+        winner = None
+        if board.is_checkmate():
+            outcome = "checkmate"
+            # winner is opposite of turn current turn just got mated
+            winner = "white" if board.turn == chess.BLACK else "black"
+        elif board.is_stalemate():
+            outcome = "stalemate"
+        elif board.is_insufficient_material():
+            outcome = "insufficient_material"
+        elif board.can_claim_fifty_moves():
+            outcome = "fifty_move"
+        elif board.can_claim_threefold_repetition():
+            outcome = "threefold"
+        else:
+            outcome = "draw"
+
         return MoveResponse(
             game_id=g.id,
             fen_before=fen_before,
@@ -156,6 +174,9 @@ def submit_move(game_id: str, req: SubmitMoveRequest, db: Session = Depends(get_
             mate_player=None,
             pv=[],
             top_moves=[],
+            game_over=True,
+            outcome=outcome,
+            winner=winner,
         )
 
     # Engine reply + analysis (analyze position after user's move)
@@ -180,6 +201,37 @@ def submit_move(game_id: str, req: SubmitMoveRequest, db: Session = Depends(get_
         moves.append(engine_reply)
     g.moves_uci = " ".join(moves)
     g.current_fen = board.fen()
+    
+    # Check if game ended after engine move
+    game_over = board.is_game_over(claim_draw=True)
+    outcome = None
+    winner = None
+    
+    if game_over:
+        g.pgn = _compute_pgn(g)
+        g.status = "finished"
+        
+        # Detect outcome type
+        if board.is_checkmate():
+            outcome = "checkmate"
+            winner = "white" if board.turn == chess.BLACK else "black"
+            print(f"CHECKMATE DETECTED! Winner: {winner}, Current turn: {board.turn}")
+        elif board.is_stalemate():
+            outcome = "stalemate"
+            print("STALEMATE DETECTED!")
+        elif board.is_insufficient_material():
+            outcome = "insufficient_material"
+        elif board.can_claim_fifty_moves():
+            outcome = "fifty_move"
+        elif board.can_claim_threefold_repetition():
+            outcome = "threefold"
+        else:
+            outcome = "draw"
+        
+        print(f"Game Over! Outcome: {outcome}, Winner: {winner}")
+    else:
+        print(f"Game continues. Board state: {board.fen()[:50]}...")
+    
     repo.save_game(db, g)
 
     # ----- Build coaching payload (both White POV and Player POV) -----
@@ -246,6 +298,8 @@ def submit_move(game_id: str, req: SubmitMoveRequest, db: Session = Depends(get_
             )
         )
 
+    print(f"Returning response: game_over={game_over}, outcome={outcome}, winner={winner}")
+    
     return MoveResponse(
         game_id=g.id,
         fen_before=fen_before,
@@ -259,6 +313,9 @@ def submit_move(game_id: str, req: SubmitMoveRequest, db: Session = Depends(get_
         mate_player=mate_player,
         pv=pv,
         top_moves=top_moves,
+        game_over=game_over,
+        outcome=outcome,
+        winner=winner,
     )
 
 

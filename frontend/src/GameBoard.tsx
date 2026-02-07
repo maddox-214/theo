@@ -96,6 +96,7 @@ type GameBoardProps = {
   playerColor: 'white' | 'black';
   startFen: string;
   onExit?: () => void;
+  onGoToReview?: () => void;
 };
 
 const GameBoard: React.FC<GameBoardProps> = ({ 
@@ -103,10 +104,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
   eloBucket, 
   playerColor, 
   startFen,
-  onExit 
+  onExit,
+  onGoToReview
 }) => {
   const [_instructor, setInstructor] = useState<Instructor | null>(null);
-  const [dialog, _setDialog] = useState(
+  const [dialog, setDialog] = useState(
     "Welcome. Let's begin with control of the center."
   );
 
@@ -118,6 +120,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const [showMoveHistory, setShowMoveHistory] = useState(false);
   const [isWaitingForAI, setIsWaitingForAI] = useState(false);
   const [evaluation, setEvaluation] = useState<string>("");
+  const [gameOver, setGameOver] = useState(false);
+  const [gameOutcome, setGameOutcome] = useState<string | null>(null);
+  const [winner, setWinner] = useState<string | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("instructor");
@@ -135,6 +140,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
   function handleSquareClick(square: string) {
     if (isWaitingForAI) {
       console.log("Waiting for AI response...");
+      return;
+    }
+
+    if (gameOver) {
+      console.log("Game is over!");
       return;
     }
 
@@ -177,6 +187,22 @@ const GameBoard: React.FC<GameBoardProps> = ({
     }
   }
 
+  // Helper to format outcome text
+  function getOutcomeText(outcome: string | null): string {
+    if (!outcome) return "";
+    
+    const outcomeMap: Record<string, string> = {
+      "checkmate": "Checkmate",
+      "stalemate": "Stalemate",
+      "insufficient_material": "Insufficient Material",
+      "fifty_move": "Fifty Move Rule",
+      "threefold": "Threefold Repetition",
+      "draw": "Draw"
+    };
+    
+    return outcomeMap[outcome] || outcome;
+  }
+
   async function handlePlayerMove(from: string, to: string) {
     try {
       const move = game.move({ from: from as any, to: to as any });
@@ -200,6 +226,38 @@ const GameBoard: React.FC<GameBoardProps> = ({
         const response = await submitMove(gameId, move.from, move.to);
         
         console.log("Backend response:", response);
+        console.log("Game over check:", {
+          game_over: response.game_over,
+          outcome: response.outcome,
+          winner: response.winner,
+          hasGameOverField: 'game_over' in response
+        });
+        
+        // Check for game over
+        if (response.game_over) {
+          setGameOver(true);
+          setGameOutcome(response.outcome || null);
+          setWinner(response.winner || null);
+          
+          // Set appropriate dialog message
+          if (response.outcome === "stalemate") {
+            setDialog("Stalemate! The game is a draw - no legal moves available.");
+          } else if (response.outcome === "checkmate") {
+            if (response.winner === playerColor) {
+              setDialog("Checkmate! You won! Excellent play!");
+            } else {
+              setDialog("Checkmate! You've been defeated. Study and try again!");
+            }
+          } else if (response.outcome === "insufficient_material") {
+            setDialog("Draw by insufficient material. Neither side can checkmate.");
+          } else if (response.outcome === "fifty_move") {
+            setDialog("Draw by the fifty-move rule. No progress in 50 moves.");
+          } else if (response.outcome === "threefold") {
+            setDialog("Draw by threefold repetition. Position repeated three times.");
+          } else {
+            setDialog("The game has ended in a draw.");
+          }
+        }
         
         // Update evaluation
         if (response.eval_player_cp !== null) {
@@ -243,34 +301,273 @@ const GameBoard: React.FC<GameBoardProps> = ({
       {/* LEFT SIDE: Chess board area (70%) */}
       <div className="game-board-area">
         <div className="board-wrapper">
-          {/* Turn indicator */}
-          <div style={{ 
-            textAlign: 'center', 
-            marginBottom: '10px', 
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-            color: '#fff'
-          }}>
-            {isWaitingForAI ? (
-              <span style={{ opacity: 0.7 }}>AI is thinking...</span>
-            ) : (
-              <>
-                {game.turn() === 'w' ? "White's Turn" : "Black's Turn"}
-                {evaluation && (
-                  <span style={{ 
-                    marginLeft: '15px', 
-                    fontSize: '1rem', 
-                    opacity: 0.8,
-                    color: '#7fbf7f'
-                  }}>
-                    {evaluation}
-                  </span>
-                )}
-              </>
-            )}
-          </div>
+          {/* Turn indicator - hidden when game is over */}
+          {!gameOver && (
+            <div style={{ 
+              textAlign: 'center', 
+              marginBottom: '10px', 
+              fontSize: '1.2rem',
+              fontWeight: 'bold',
+              color: '#fff'
+            }}>
+              {isWaitingForAI ? (
+                <span style={{ opacity: 0.7 }}>AI is thinking...</span>
+              ) : (
+                <>
+                  {game.turn() === 'w' ? "White's Turn" : "Black's Turn"}
+                  {evaluation && (
+                    <span style={{ 
+                      marginLeft: '15px', 
+                      fontSize: '1rem', 
+                      opacity: 0.8,
+                      color: '#7fbf7f'
+                    }}>
+                      {evaluation}
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+          )}
           
           <div className="board-frame">
+            {/* Game Over Overlay */}
+            {gameOver && (
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(0, 0, 0, 0.85)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000,
+                borderRadius: '8px'
+              }}>
+                <div style={{
+                  background: '#3a3a3a',
+                  padding: '50px 60px',
+                  borderRadius: '12px',
+                  textAlign: 'center',
+                  minWidth: '400px'
+                }}>
+                  {/* Title */}
+                  <h2 style={{ 
+                    fontSize: '2rem', 
+                    marginBottom: '10px',
+                    color: '#ffffff',
+                    fontWeight: '600',
+                    letterSpacing: '0.5px'
+                  }}>
+                    {gameOutcome === "checkmate" && winner !== playerColor && (
+                      `${playerColor === 'white' ? 'Black' : 'White'} Won`
+                    )}
+                    {gameOutcome === "checkmate" && winner === playerColor && "You Won"}
+                    {gameOutcome !== "checkmate" && "Draw"}
+                  </h2>
+                  
+                  {/* Subtitle - outcome type */}
+                  <p style={{ 
+                    fontSize: '1.1rem', 
+                    color: '#b0b0b0',
+                    marginBottom: '40px',
+                    fontWeight: '400'
+                  }}>
+                    by {getOutcomeText(gameOutcome)}
+                  </p>
+                  
+                  {/* Buttons */}
+                  {winner === playerColor || gameOutcome !== "checkmate" ? (
+                    // Player won or draw - Game Review is primary
+                    <>
+                      <button
+                        onClick={() => {
+                          console.log('Game Review clicked!', { onGoToReview });
+                          if (onGoToReview) {
+                            onGoToReview();
+                          } else {
+                            console.error('onGoToReview callback not provided');
+                          }
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '16px',
+                          background: '#7cb342',
+                          border: 'none',
+                          borderRadius: '8px',
+                          color: '#ffffff',
+                          cursor: 'pointer',
+                          fontSize: '1.2rem',
+                          fontWeight: '600',
+                          marginBottom: '15px',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = '#8bc34a';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = '#7cb342';
+                          e.currentTarget.style.transform = 'translateY(0)';
+                        }}
+                      >
+                        Game Review
+                      </button>
+                      
+                      <div style={{ display: 'flex', gap: '12px' }}>
+                        {onExit && (
+                          <button
+                            onClick={onExit}
+                            style={{
+                              flex: 1,
+                              padding: '12px',
+                              background: '#5a5a5a',
+                              border: 'none',
+                              borderRadius: '8px',
+                              color: '#ffffff',
+                              cursor: 'pointer',
+                              fontSize: '1rem',
+                              fontWeight: '500',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#6a6a6a';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = '#5a5a5a';
+                            }}
+                          >
+                            Main Menu
+                          </button>
+                        )}
+                        
+                        <button
+                          onClick={() => {
+                            // Reload to start new game with same settings
+                            window.location.reload();
+                          }}
+                          style={{
+                            flex: 1,
+                            padding: '12px',
+                            background: '#5a5a5a',
+                            border: 'none',
+                            borderRadius: '8px',
+                            color: '#ffffff',
+                            cursor: 'pointer',
+                            fontSize: '1rem',
+                            fontWeight: '500',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#6a6a6a';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#5a5a5a';
+                          }}
+                        >
+                          Rematch
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    // Player lost - Rematch is primary
+                    <>
+                      <button
+                        onClick={() => {
+                          // Reload to start new game with same settings
+                          window.location.reload();
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '16px',
+                          background: '#7cb342',
+                          border: 'none',
+                          borderRadius: '8px',
+                          color: '#ffffff',
+                          cursor: 'pointer',
+                          fontSize: '1.2rem',
+                          fontWeight: '600',
+                          marginBottom: '15px',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = '#8bc34a';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = '#7cb342';
+                          e.currentTarget.style.transform = 'translateY(0)';
+                        }}
+                      >
+                        Rematch
+                      </button>
+                      
+                      <div style={{ display: 'flex', gap: '12px' }}>
+                        {onExit && (
+                          <button
+                            onClick={onExit}
+                            style={{
+                              flex: 1,
+                              padding: '12px',
+                              background: '#5a5a5a',
+                              border: 'none',
+                              borderRadius: '8px',
+                              color: '#ffffff',
+                              cursor: 'pointer',
+                              fontSize: '1rem',
+                              fontWeight: '500',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#6a6a6a';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = '#5a5a5a';
+                            }}
+                          >
+                            Main Menu
+                          </button>
+                        )}
+                        
+                        <button
+                          onClick={() => {
+                            console.log('Game Review clicked (loss)!', { onGoToReview });
+                            if (onGoToReview) {
+                              onGoToReview();
+                            } else {
+                              console.error('onGoToReview callback not provided');
+                            }
+                          }}
+                          style={{
+                            flex: 1,
+                            padding: '12px',
+                            background: '#5a5a5a',
+                            border: 'none',
+                            borderRadius: '8px',
+                            color: '#ffffff',
+                            cursor: 'pointer',
+                            fontSize: '1rem',
+                            fontWeight: '500',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#6a6a6a';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#5a5a5a';
+                          }}
+                        >
+                          Game Review
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+            
             {/* Checkerboard grid (64 squares) */}
             <div className="board-grid">
               {Array.from({ length: 64 }).map((_, i) => {
