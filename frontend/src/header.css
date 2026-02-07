@@ -17,6 +17,7 @@
   font-size: 1.8rem;
   color: #ff8c42; /* burnt orange */
   text-shadow: 0 0 8px rgba(255, 140, 66, 0.6); /* glow effect */
-  font-family: "Georgia", "Times New Roman", serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
   letter-spacing: 0.05em;
 }
