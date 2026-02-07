@@ -1,6 +1,7 @@
 import os
 import typing as t
 import json
+import asyncio
 from theo_api.services.stockfish.engine import EngineAnalysis, UciLine
 
 
@@ -46,6 +47,34 @@ class LLMClient:
             # best-effort fallback to stringified response
             return json.dumps(data)
 
+    async def chat_async(self, messages: list[dict], temperature: float = 0.6, max_tokens: int = 400) -> str:
+        if not self.api_key:
+            raise RuntimeError("OPENAI_API_KEY not set")
+
+        try:
+            import httpx
+        except Exception as e:
+            raise RuntimeError("httpx is required to call the OpenAI API; install it or set no API key") from e
+
+        url = f"{self.base_url}/chat/completions"
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+        headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            r = await client.post(url, headers=headers, json=payload)
+            r.raise_for_status()
+            data = r.json()
+
+        try:
+            return data["choices"][0]["message"]["content"]
+        except Exception:
+            return json.dumps(data)
+
     def hint_from_analysis(self, analysis: EngineAnalysis, elo_bucket: int) -> str:
         """Return a human-friendly hint for the player based on analysis and elo.
 
@@ -71,7 +100,7 @@ class LLMClient:
 
         if self.api_key:
             system = (
-                "You are a warm, encouraging chess coach. Provide one short, friendly, and actionable hint the player can use right away. "
+                "You are Theo, a warm, encouraging chess coach. Provide one short, friendly, and actionable hint the player can use right away. "
                 "Use simple, non-technical language and avoid engine jargon. Tailor tone to the player's ELO: for beginners give concrete, step-by-step suggestions; "
                 "for intermediate players give concise tactical/strategic guidance."
             )
@@ -89,8 +118,45 @@ class LLMClient:
             except Exception:
                 # fall back to deterministic summary below
                 pass
-
         # Deterministic fallback when no API key or the call failed
+        return self._fallback_hint(analysis, elo_bucket)
+
+    async def hint_from_analysis_async(self, analysis: EngineAnalysis, elo_bucket: int) -> str:
+        # Async variant that prefers an async HTTP client when API key present
+        facts = [f"FEN: {analysis.fen}"]
+        if analysis.best_move:
+            facts.append(f"Best move (uci): {analysis.best_move}")
+
+        lines = []
+        for i, l in enumerate(analysis.lines[:3], start=1):
+            ev = None
+            if l.eval_cp is not None:
+                ev = f"{l.eval_cp/100:.2f}"
+            elif l.mate is not None:
+                ev = f"mate in {l.mate}"
+            pv = " ".join(l.pv) if l.pv else ""
+            lines.append(f"Line {i}: eval={ev or 'n/a'} depth={l.depth} pv={pv}")
+
+        if self.api_key:
+            system = (
+                "You are Theo, a warm, encouraging chess coach. Provide one short, friendly, and actionable hint the player can use right away. "
+                "Use simple, non-technical language and avoid engine jargon. Tailor tone to the player's ELO: for beginners give concrete, step-by-step suggestions; "
+                "for intermediate players give concise tactical/strategic guidance."
+            )
+            user = (
+                f"Player elo bucket: {elo_bucket}\n"
+                "Below are the engine's top lines for context (do not repeat raw centipawn values).\n" + "\n".join(lines) + "\n"
+                "Give one short move suggestion (prefer SAN) and one clear sentence explaining why it's a good choice or what to watch for."
+            )
+            messages = [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ]
+            try:
+                return await self.chat_async(messages)
+            except Exception:
+                pass
+
         return self._fallback_hint(analysis, elo_bucket)
 
     def _fallback_hint(self, analysis: EngineAnalysis, elo_bucket: int) -> str:
@@ -119,3 +185,7 @@ class LLMClient:
 # Convenience function used by other modules
 def get_hint_for(analysis: EngineAnalysis, elo_bucket: int) -> str:
     return LLMClient().hint_from_analysis(analysis, elo_bucket)
+
+
+async def get_hint_for_async(analysis: EngineAnalysis, elo_bucket: int) -> str:
+    return await LLMClient().hint_from_analysis_async(analysis, elo_bucket)
