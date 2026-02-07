@@ -132,7 +132,7 @@ body {
 
 .board-frame {
   position: relative;
-  margin-top: 10%;
+  margin-top: 15%;
   width: min(90%, 560px);
   aspect-ratio: 1 / 1;
   background: #2b2b2b;
