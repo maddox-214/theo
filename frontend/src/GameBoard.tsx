@@ -261,7 +261,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
                     marginLeft: '15px', 
                     fontSize: '1rem', 
                     opacity: 0.8,
-                    color: '#7fbf7f'
+                    color: '#ff8c42'
                   }}>
                     {evaluation}
                   </span>

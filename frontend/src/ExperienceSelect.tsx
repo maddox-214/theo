@@ -67,11 +67,12 @@ const ExperienceSelect: React.FC<ExperienceSelectProps> = ({ onGameCreated }) =>
               index === 1 || index === 2 ? "front" : ""
             }`}
           >
-            <img src={level.piece} alt={level.name} />
             <button 
+            className="exp-button"
               onClick={() => handleLevelClick(level)}
               disabled={loading}
             >
+              <img src={level.piece} alt={level.name} />
               {loading ? "Starting..." : level.name}
             </button>
             <small style={{ display: "block", marginTop: "0.5rem", opacity: 0.7 }}>
