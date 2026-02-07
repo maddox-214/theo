@@ -185,6 +185,35 @@ body {
   pointer-events: none;
 }
 
+.square-file-label,
+.square-rank-label {
+  position: absolute;
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.square-rank-label {
+  top: 4px;
+  left: 4px;
+}
+
+.square-file-label {
+  right: 4px;
+  bottom: 4px;
+}
+
+.square .square-file-label,
+.square .square-rank-label {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.square.dark .square-file-label,
+.square.dark .square-rank-label {
+  color: rgba(255, 255, 255, 0.85);
+}
+
 .board-overlay {
   position: absolute;
   inset: 12px;
