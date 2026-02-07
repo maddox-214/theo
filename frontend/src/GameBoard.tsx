@@ -91,6 +91,7 @@ function syncPiecesFromGame(chessGame: Chess): Piece[] {
 ========================= */
 
 type GameBoardProps = {
+  avatar: string;
   gameId: string;
   eloBucket: number;
   playerColor: 'white' | 'black';
@@ -99,6 +100,7 @@ type GameBoardProps = {
 };
 
 const GameBoard: React.FC<GameBoardProps> = ({ 
+  avatar,
   gameId, 
   eloBucket, 
   playerColor, 
@@ -287,16 +289,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
             ) : (
               <div className="turn-block">
                 {game.turn() === 'w' ? "White's Turn" : "Black's Turn"}
-                {evaluation && (
-                  <span style={{ 
-                    marginLeft: '15px', 
-                    fontSize: '1rem', 
-                    opacity: 0.8,
-                    color: '#ff8c42'
-                  }}>
-                    {evaluation}
-                  </span>
-                )}
               </div>
             )}
           </div>
@@ -430,7 +422,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
         {/* Instructor mascot avatar */}
         <img
-          src="/images/tiny_knight_white.png"
+          src={avatar}
           className="mascot"
           alt="Instructor"
         />

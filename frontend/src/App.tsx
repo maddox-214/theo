@@ -13,7 +13,7 @@ type GameData = {
 function App() {
   const [currentScreen, setCurrentScreen] = useState<'select' | 'game'>('select');
   const [gameData, setGameData] = useState<GameData | null>(null);
-
+  const [avatar, setAvatar] = useState("public/images/bishop_white.png");
   const handleGameCreated = (data: GameData) => {
     setGameData(data);
     setCurrentScreen('game');
@@ -27,10 +27,11 @@ function App() {
   return (
     <>
       {currentScreen === 'select' && (
-        <ExperienceSelect onGameCreated={handleGameCreated} />
+        <ExperienceSelect onGameCreated={handleGameCreated} setAvatar={setAvatar}/>
       )}
       {currentScreen === 'game' && gameData && (
         <GameBoard 
+          avatar={avatar}
           gameId={gameData.gameId}
           eloBucket={gameData.eloBucket}
           playerColor={gameData.playerColor}

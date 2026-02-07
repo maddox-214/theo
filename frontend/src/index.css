@@ -127,6 +127,7 @@ body {
 .turn-block{
   display: flex;
   max-width: 70px;
+  margin-right: 10px;
 }
 .board-frame {
   position: relative;

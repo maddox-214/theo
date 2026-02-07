@@ -4,6 +4,7 @@ import { createGame } from "./lib/api";
 type Level = {
   name: string;
   piece: string;
+  bigPiece: string;
   elo: number;
 };
 
@@ -14,16 +15,17 @@ type ExperienceSelectProps = {
     playerColor: 'white' | 'black';
     startFen: string;
   }) => void;
+  setAvatar: React.Dispatch<React.SetStateAction<string>>;
 };
 
 const levels: Level[] = [
-  { name: "Beginner", piece: "public/images/tiny_bishop_white.png", elo: 400 },
-  { name: "Intermediate", piece: "public/images/tiny_knight_white.png", elo: 800 },
-  { name: "Advanced", piece: "public/images/tiny_rook_white.png", elo: 1200 },
-  { name: "Master", piece: "public/images/tiny_queen_white.png", elo: 2000 },
+  { name: "Beginner", piece: "public/images/tiny_bishop_white.png", bigPiece:"public/images/bishop_white.png", elo: 400 },
+  { name: "Intermediate", piece: "public/images/tiny_knight_white.png", bigPiece:"public/images/knight_white.png", elo: 800 },
+  { name: "Advanced", piece: "public/images/tiny_rook_white.png", bigPiece:"public/images/rook_white.png", elo: 1200 },
+  { name: "Master", piece: "public/images/tiny_queen_white.png", bigPiece:"public/images/queen_white.png", elo: 2000 },
 ];
 
-const ExperienceSelect: React.FC<ExperienceSelectProps> = ({ onGameCreated }) => {
+const ExperienceSelect: React.FC<ExperienceSelectProps> = ({ onGameCreated, setAvatar }) => {
   const [loading, setLoading] = useState(false);
 
   const handleLevelClick = async (level: Level) => {
@@ -39,6 +41,8 @@ const ExperienceSelect: React.FC<ExperienceSelectProps> = ({ onGameCreated }) =>
         color: game.player_color,
         startFen: game.start_fen
       });
+
+      setAvatar(level.bigPiece);
       
       // Navigate to game board
       onGameCreated({
