@@ -16,6 +16,7 @@ from theo_api.schemas.games import (
 )
 from theo_api.services.stockfish.difficulty import clamp_bucket
 from theo_api.services.stockfish.analysis import choose_engine_reply
+from theo_api.services.llm.client import LLMClient
 
 router = APIRouter(prefix="/games", tags=["games"])
 
@@ -298,6 +299,16 @@ def submit_move(game_id: str, req: SubmitMoveRequest, db: Session = Depends(get_
             )
         )
 
+    # ----- Generate LLM coaching response -----
+    llm_response = None
+    if not game_over:
+        try:
+            llm_client = LLMClient()
+            llm_response = llm_client.hint_from_analysis(analysis, g.elo_bucket)
+        except Exception as e:
+            print(f"LLM coaching call failed: {e}")
+            llm_response = None
+
     print(f"Returning response: game_over={game_over}, outcome={outcome}, winner={winner}")
     
     return MoveResponse(
@@ -316,6 +327,7 @@ def submit_move(game_id: str, req: SubmitMoveRequest, db: Session = Depends(get_
         game_over=game_over,
         outcome=outcome,
         winner=winner,
+        llm_response=llm_response,
     )
 
 

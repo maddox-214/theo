@@ -87,6 +87,45 @@ function syncPiecesFromGame(chessGame: Chess): Piece[] {
 }
 
 /* =========================
+   Coaching messages from eval
+========================= */
+
+function generateCoachingMessage(
+  evalPlayerCp: number | null,
+  matePlayer: number | null,
+  prevEvalPlayerCp: number | null,
+  _moveNumber: number
+): string {
+  // Mate situations
+  if (matePlayer !== null) {
+    if (matePlayer > 0) return "You have a forced checkmate! Find the winning sequence.";
+    if (matePlayer < 0) return "Careful — your opponent has a mating threat. Look for a defense.";
+  }
+
+  if (evalPlayerCp === null) return "Interesting position. Think about what each side wants to do.";
+
+  const evalPawns = evalPlayerCp / 100;
+
+  // Compare to previous eval to detect blunders / great moves
+  if (prevEvalPlayerCp !== null) {
+    const swing = evalPlayerCp - prevEvalPlayerCp;
+    if (swing >= 200) return "Excellent move! You've gained a significant advantage.";
+    if (swing >= 100) return "Good move! You're improving your position.";
+    if (swing <= -300) return "That was a mistake — you lost significant ground. Watch for tactics!";
+    if (swing <= -150) return "That move wasn't ideal. Try to think about what your opponent threatens.";
+  }
+
+  // Positional messages based on current eval
+  if (evalPawns > 3) return "You're winning! Stay focused and convert your advantage.";
+  if (evalPawns > 1.5) return "You have a nice advantage. Look for ways to press it.";
+  if (evalPawns > 0.5) return "Slightly better for you. Keep developing and controlling the center.";
+  if (evalPawns > -0.5) return "The position is roughly equal. Good, solid play!";
+  if (evalPawns > -1.5) return "Your opponent is slightly better. Look for active moves.";
+  if (evalPawns > -3) return "You're behind. Try to create counterplay or simplify carefully.";
+  return "Tough position. Stay alert and look for defensive resources.";
+}
+
+/* =========================
    Component
 ========================= */
 
@@ -122,6 +161,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const [showMoveHistory, setShowMoveHistory] = useState(false);
   const [isWaitingForAI, setIsWaitingForAI] = useState(false);
   const [evaluation, setEvaluation] = useState<string>("");
+  const [prevEvalPlayerCp, setPrevEvalPlayerCp] = useState<number | null>(null);
+  const [moveCount, setMoveCount] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [gameOutcome, setGameOutcome] = useState<string | null>(null);
   const [winner, setWinner] = useState<string | null>(null);
@@ -224,6 +265,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
       // Send to backend and get AI response
       setIsWaitingForAI(true);
+      setDialog("Thinking...");
       try {
         const response = await submitMove(gameId, move.from, move.to);
         
@@ -268,6 +310,26 @@ const GameBoard: React.FC<GameBoardProps> = ({
         } else if (response.mate_player !== null) {
           setEvaluation(`Mate in ${response.mate_player}`);
         }
+
+        // Update coaching dialog (only if game is not over)
+        if (!response.game_over) {
+          const newMoveCount = moveCount + 1;
+          setMoveCount(newMoveCount);
+
+          if (response.llm_response) {
+            setDialog(response.llm_response);
+          } else {
+            const coachMsg = generateCoachingMessage(
+              response.eval_player_cp,
+              response.mate_player ?? null,
+              prevEvalPlayerCp,
+              newMoveCount
+            );
+            setDialog(coachMsg);
+          }
+
+          setPrevEvalPlayerCp(response.eval_player_cp);
+        }
         
         // Apply AI move
         if (response.engine_reply_uci) {
@@ -289,7 +351,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
         }
       } catch (error) {
         console.error("Failed to submit move:", error);
-        alert("Failed to get AI response. Check console.");
+        // Undo the local move so the player can try again
+        game.undo();
+        setPieces(syncPiecesFromGame(game));
+        setMoveHistory(prev => prev.slice(0, -1));
+        setDialog("Connection issue — your move was rolled back. Try again.");
       } finally {
         setIsWaitingForAI(false);
       }

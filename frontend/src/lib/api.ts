@@ -48,6 +48,7 @@ export interface MoveResponse {
   game_over?: boolean;
   outcome?: "checkmate" | "stalemate" | "insufficient_material" | "fifty_move" | "threefold" | "draw" | null;
   winner?: PlayerColor | null;
+  llm_response?: string | null;
 }
 
 export interface GameStateResponse {
