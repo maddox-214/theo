@@ -307,11 +307,14 @@ body {
 .mascot-div {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .name-tag {
   display: flex;
-  align-items: center;
+  font-weight: bold;
+  font-size: large;
 }
 
 /* Speech box */
