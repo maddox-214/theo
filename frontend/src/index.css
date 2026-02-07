@@ -90,3 +90,154 @@ body {
   color: white;
   transform: translateY(-1px);
 }
+
+
+/* Root layout */
+.game-root {
+  min-height: 91vh;
+  display: flex;
+  background: linear-gradient(180deg, #3a3a3a, #1e1e1e);
+  color: white;
+  align-items: stretch; 
+}
+
+.game-board-area {
+  flex: 0 0 70%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 600px;
+  width: 600px;
+}
+
+
+/* Chess board */
+.board-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.board-frame {
+  position: relative;
+  margin-top: 10%;
+  width: min(90%, 560px);
+  aspect-ratio: 1 / 1;
+  background: #2b2b2b;
+  height: 600px;
+  width: 600px;
+  border-radius: 12px;
+  padding: 12px;
+  margin-left: 30px;
+  box-shadow:
+    0 30px 60px rgba(0, 0, 0, 0.6);
+}
+
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.square {
+  background: #e3e3e3;
+  position: relative;
+}
+
+.square.dark {
+  background: #9b9b9b;
+}
+
+.square.selected {
+  background: #7fbf7f !important;
+  box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.square.legal-move {
+  cursor: pointer;
+}
+
+.move-indicator {
+  width: 30%;
+  height: 30%;
+  background: rgba(0, 255, 0, 0.4);
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.board-overlay {
+  position: absolute;
+  inset: 12px;
+  pointer-events: none;
+}
+
+.chess-piece {
+  position: absolute;
+  width: 12.5%;
+  height: 12.5%;
+  pointer-events: none;
+  left: 0;
+  top: 0;
+}
+}
+
+/* Instructor zone */
+.instructor-area {
+  flex: 0 0 30%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  padding: 40px 60px;
+  gap: 24px;
+}
+
+/* Mascot */
+.mascot {
+  width: 120px;
+  height: auto;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.7));
+}
+
+/* Speech box */
+.speech-box {
+  position: relative;
+  max-width: 320px;
+  padding: 24px 28px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  transition: all 0.35s ease;
+}
+
+/* Text */
+.speech-box p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* Quotes */
+.quote {
+  position: absolute;
+  font-size: 48px;
+  opacity: 0.25;
+  font-family: serif;
+}
+
+.quote.left {
+  top: -18px;
+  left: -8px;
+}
+
+.quote.right {
+  bottom: -28px;
+  right: -6px;
+}
