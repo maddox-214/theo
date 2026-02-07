@@ -8,6 +8,7 @@ dependencies = [
   "pydantic",
   "pydantic-settings",
   "sqlalchemy",
+  "httpx>=0.24",
   "chess",
 ]
 
