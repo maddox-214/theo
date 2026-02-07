@@ -246,6 +246,8 @@ def submit_move(game_id: str, req: SubmitMoveRequest, db: Session = Depends(get_
             )
         )
 
+    from theo_api.services.coaching.explain_move import explain_move
+    llm_response = explain_move(fen_after, req.move_uci, g.elo_bucket)
     return MoveResponse(
         game_id=g.id,
         fen_before=fen_before,
@@ -259,6 +261,7 @@ def submit_move(game_id: str, req: SubmitMoveRequest, db: Session = Depends(get_
         mate_player=mate_player,
         pv=pv,
         top_moves=top_moves,
+        llm_response=llm_response,
     )
 
 

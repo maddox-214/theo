@@ -50,6 +50,8 @@ class MoveResponse(BaseModel):
     pv: list[str] = []
     top_moves: list[AnalysisLine] = []
 
+    llm_response: Optional[str] = None
+
 
 class GameStateResponse(BaseModel):
     game_id: str

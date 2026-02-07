@@ -106,7 +106,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   onExit 
 }) => {
   const [_instructor, setInstructor] = useState<Instructor | null>(null);
-  const [dialog, _setDialog] = useState(
+  const [dialog, setDialog] = useState(
     "Welcome. Let's begin with control of the center."
   );
 
@@ -114,10 +114,12 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const [pieces, setPieces] = useState<Piece[]>([]);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [legalMoves, setLegalMoves] = useState<string[]>([]);
+  const [legalMovesVerbose, setLegalMovesVerbose] = useState<any[]>([]);
   const [moveHistory, setMoveHistory] = useState<string[]>([]);
   const [showMoveHistory, setShowMoveHistory] = useState(false);
   const [isWaitingForAI, setIsWaitingForAI] = useState(false);
   const [evaluation, setEvaluation] = useState<string>("");
+  const [pendingPromotion, setPendingPromotion] = useState<{ from: string; to: string } | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("instructor");
@@ -159,10 +161,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
         setSelectedSquare(square);
         
-        // Get legal moves for this piece
+        // Get legal moves for this piece (verbose so we can detect promotions)
         const moves = game.moves({ square: square as any, verbose: true });
-        const destinations = moves.map(m => m.to);
+        const destinations = moves.map((m: any) => m.to);
         setLegalMoves(destinations);
+        setLegalMovesVerbose(moves);
         
         console.log("Selected:", square, "-", piece.type, piece.color);
         console.log("Legal moves:", destinations.join(", "));
@@ -170,16 +173,24 @@ const GameBoard: React.FC<GameBoardProps> = ({
         console.log("Empty square clicked:", square);
       }
     } else {
-      // Try to move
-      handlePlayerMove(selectedSquare, square);
+      // Try to move (check for promotion first)
+      const matching = (legalMovesVerbose || []).find(m => m.to === square && m.from === selectedSquare);
+      if (matching && matching.promotion) {
+        // show promotion picker
+        setPendingPromotion({ from: selectedSquare, to: square });
+      } else {
+        // regular move
+        handlePlayerMove(selectedSquare, square);
+      }
       setSelectedSquare(null);
       setLegalMoves([]);
+      setLegalMovesVerbose([]);
     }
   }
 
-  async function handlePlayerMove(from: string, to: string) {
+  async function handlePlayerMove(from: string, to: string, promotion?: string) {
     try {
-      const move = game.move({ from: from as any, to: to as any });
+      const move = game.move({ from: from as any, to: to as any, promotion: promotion as any });
       if (!move) {
         console.log("Illegal move:", from, "→", to);
         return;
@@ -197,10 +208,12 @@ const GameBoard: React.FC<GameBoardProps> = ({
       // Send to backend and get AI response
       setIsWaitingForAI(true);
       try {
-        const response = await submitMove(gameId, move.from, move.to);
-        
+        // include promotion char in UCI if present
+        const promotionChar = (move as any).promotion || promotion;
+        const response = await submitMove(gameId, move.from, move.to, promotionChar);
+
         console.log("Backend response:", response);
-        
+
         // Update evaluation
         if (response.eval_player_cp !== null) {
           const evalScore = (response.eval_player_cp / 100).toFixed(2);
@@ -208,23 +221,34 @@ const GameBoard: React.FC<GameBoardProps> = ({
         } else if (response.mate_player !== null) {
           setEvaluation(`Mate in ${response.mate_player}`);
         }
-        
+
+        // Show Theo's LLM response
+        if (response.llm_response) {
+          setDialog(response.llm_response);
+        }
+
         // Apply AI move
         if (response.engine_reply_uci) {
-          const aiFrom = response.engine_reply_uci.slice(0, 2);
-          const aiTo = response.engine_reply_uci.slice(2, 4);
-          
-          const aiMove = game.move({ 
-            from: aiFrom as any, 
-            to: aiTo as any 
-          });
-          
-          if (aiMove) {
-            setPieces(syncPiecesFromGame(game));
-            const aiColor = playerColor === 'white' ? 'black' : 'white';
-            const aiMoveNotation = `${aiColor}: ${aiMove.from}-${aiMove.to}`;
-            setMoveHistory(prev => [...prev, aiMoveNotation]);
-            console.log("AI move:", aiMove.from, "→", aiMove.to);
+          // handle possible promotion in UCI (e.g., e7e8q)
+          const uci = response.engine_reply_uci;
+          if (uci && uci.length >= 4) {
+            const aiFrom = uci.slice(0, 2);
+            const aiTo = uci.slice(2, 4);
+            const aiPromotion = uci.length >= 5 ? uci[4] : undefined;
+
+            const aiMove = game.move({
+              from: aiFrom as any,
+              to: aiTo as any,
+              promotion: aiPromotion as any,
+            });
+
+            if (aiMove) {
+              setPieces(syncPiecesFromGame(game));
+              const aiColor = playerColor === 'white' ? 'black' : 'white';
+              const aiMoveNotation = `${aiColor}: ${aiMove.from}-${aiMove.to}`;
+              setMoveHistory(prev => [...prev, aiMoveNotation]);
+              console.log("AI move:", aiMove.from, "→", aiMove.to);
+            }
           }
         }
       } catch (error) {
@@ -236,6 +260,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
     } catch (error) {
       console.log("Illegal move:", from, "→", to);
     }
+  }
+
+  function handlePromotionSelect(piece: string) {
+    if (!pendingPromotion) return;
+    // piece is one of 'q','r','b','n'
+    handlePlayerMove(pendingPromotion.from, pendingPromotion.to, piece);
+    setPendingPromotion(null);
   }
 
   return (
@@ -270,7 +301,45 @@ const GameBoard: React.FC<GameBoardProps> = ({
             )}
           </div>
           
-          <div className="board-frame">
+          <div className="board-frame" style={{ position: 'relative' }}>
+            {/* File (a-h) labels */}
+            <div style={{
+              position: 'absolute',
+              bottom: '-22px',
+              left: '0',
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'space-between',
+              padding: '0 2px',
+              fontSize: '1rem',
+              color: '#fff',
+              fontWeight: 500,
+              zIndex: 10
+            }}>
+              {Array.from('abcdefgh').map((file, idx) => (
+                <span key={file} style={{ width: '12.5%', textAlign: 'center' }}>{file}</span>
+              ))}
+            </div>
+
+            {/* Rank (1-8) labels */}
+            <div style={{
+              position: 'absolute',
+              left: '-22px',
+              top: '0',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              fontSize: '1rem',
+              color: '#fff',
+              fontWeight: 500,
+              zIndex: 10
+            }}>
+              {Array.from({ length: 8 }).map((_, idx) => (
+                <span key={idx} style={{ height: '12.5%', textAlign: 'center' }}>{8 - idx}</span>
+              ))}
+            </div>
+
             {/* Checkerboard grid (64 squares) */}
             <div className="board-grid">
               {Array.from({ length: 64 }).map((_, i) => {
@@ -326,6 +395,26 @@ const GameBoard: React.FC<GameBoardProps> = ({
                 );
               })}
             </div>
+            {/* Promotion picker */}
+            {pendingPromotion && (
+              <div className="promotion-picker" style={{
+                position: 'absolute',
+                left: '50%',
+                top: '40%',
+                transform: 'translate(-50%, -50%)',
+                background: 'rgba(0,0,0,0.85)',
+                padding: '12px',
+                borderRadius: '8px',
+                display: 'flex',
+                gap: '8px',
+                zIndex: 50
+              }}>
+                <button onClick={() => handlePromotionSelect('q')}>Queen</button>
+                <button onClick={() => handlePromotionSelect('r')}>Rook</button>
+                <button onClick={() => handlePromotionSelect('b')}>Bishop</button>
+                <button onClick={() => handlePromotionSelect('n')}>Knight</button>
+              </div>
+            )}
           </div>
         </div>
       </div>

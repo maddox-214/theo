@@ -45,6 +45,7 @@ export interface MoveResponse {
   mate_player: number | null;
   pv: string[];
   top_moves: AnalysisLine[];
+  llm_response?: string;
 }
 
 export interface GameStateResponse {
@@ -132,9 +133,10 @@ export async function createGame(
 export async function submitMove(
   gameId: string,
   from: string,
-  to: string
+  to: string,
+  promotion?: string
 ): Promise<MoveResponse> {
-  const moveUci = `${from}${to}`;
+  const moveUci = promotion ? `${from}${to}${promotion}` : `${from}${to}`;
   return fetchJson<MoveResponse>(`/games/${gameId}/move`, {
     method: "POST",
     body: JSON.stringify({
