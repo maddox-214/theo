@@ -124,6 +124,10 @@ body {
   align-items: center;
 }
 
+.turn-block{
+  display: flex;
+  max-width: 70px;
+}
 .board-frame {
   position: relative;
   margin-top: 10%;
