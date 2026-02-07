@@ -248,7 +248,16 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
   async function handlePlayerMove(from: string, to: string) {
     try {
-      const move = game.move({ from: from as any, to: to as any });
+      // Check if this is a promotion move (pawn reaching the last rank)
+      const piece = game.get(from as any);
+      const isPromotion = piece?.type === 'p' && 
+        ((piece.color === 'w' && to[1] === '8') || (piece.color === 'b' && to[1] === '1'));
+
+      const move = game.move({ 
+        from: from as any, 
+        to: to as any,
+        ...(isPromotion ? { promotion: 'q' } : {})
+      });
       if (!move) {
         console.log("Illegal move:", from, "→", to);
         return;
@@ -267,7 +276,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       setIsWaitingForAI(true);
       setDialog("Thinking...");
       try {
-        const response = await submitMove(gameId, move.from, move.to);
+        const response = await submitMove(gameId, move.from, move.to, move.promotion || undefined);
         
         console.log("Backend response:", response);
         console.log("Game over check:", {
@@ -335,18 +344,29 @@ const GameBoard: React.FC<GameBoardProps> = ({
         if (response.engine_reply_uci) {
           const aiFrom = response.engine_reply_uci.slice(0, 2);
           const aiTo = response.engine_reply_uci.slice(2, 4);
+          const aiPromotion = response.engine_reply_uci.length > 4 
+            ? response.engine_reply_uci[4] 
+            : undefined;
           
           const aiMove = game.move({ 
             from: aiFrom as any, 
-            to: aiTo as any 
+            to: aiTo as any,
+            ...(aiPromotion ? { promotion: aiPromotion } : {})
           });
           
           if (aiMove) {
             setPieces(syncPiecesFromGame(game));
             const aiColor = playerColor === 'white' ? 'black' : 'white';
-            const aiMoveNotation = `${aiColor}: ${aiMove.from}-${aiMove.to}`;
+            const aiMoveNotation = `${aiColor}: ${aiMove.from}-${aiMove.to}${aiMove.promotion ? '=' + aiMove.promotion.toUpperCase() : ''}`;
             setMoveHistory(prev => [...prev, aiMoveNotation]);
-            console.log("AI move:", aiMove.from, "→", aiMove.to);
+            console.log("AI move:", aiMove.from, "→", aiMove.to, aiMove.promotion ? `(=${aiMove.promotion})` : '');
+          } else {
+            // AI move failed to apply locally — resync from backend FEN
+            console.warn("AI move failed locally, resyncing from backend FEN");
+            if (response.fen_after_engine) {
+              game.load(response.fen_after_engine);
+              setPieces(syncPiecesFromGame(game));
+            }
           }
         }
       } catch (error) {

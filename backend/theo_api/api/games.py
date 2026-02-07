@@ -341,3 +341,90 @@ def finish_game(game_id: str, db: Session = Depends(get_db)):
     g.status = "finished"
     repo.save_game(db, g)
     return {"game_id": g.id, "status": g.status, "pgn": g.pgn}
+
+
+@router.get("/{game_id}/review")
+def get_game_review(game_id: str, db: Session = Depends(get_db)):
+    g = repo.get_game(db, game_id)
+    if not g:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    # Build PGN if not already stored
+    pgn = g.pgn or _compute_pgn(g)
+
+    # ELO-aware tone
+    if g.elo_bucket <= 600:
+        tone = (
+            "The player is a complete beginner. Be extra warm, celebratory, and patient. "
+            "Praise what they did well. Frame tips as fun things to explore, not mistakes to fix."
+        )
+    elif g.elo_bucket <= 1000:
+        tone = (
+            "The player is a beginner. Be encouraging and supportive. "
+            "Acknowledge effort and gently suggest areas to improve."
+        )
+    elif g.elo_bucket <= 1400:
+        tone = (
+            "The player is intermediate. Be friendly but more direct with tactical and strategic advice."
+        )
+    else:
+        tone = (
+            "The player is advanced. Be concise and focus on deeper strategic or calculation insights."
+        )
+
+    system = (
+        "You are Theo, a kind and thoughtful chess coach reviewing a student's game. "
+        "Analyze the game and produce exactly 4 to 6 key takeaways as bullet points.\n\n"
+        "RULES:\n"
+        "- Each bullet should be one clear, actionable sentence.\n"
+        "- Mix praise with constructive advice — always start with something positive.\n"
+        "- Reference specific moments from the game when possible (e.g., 'Your knight maneuver to f5 was strong').\n"
+        "- Never use centipawn values or engine jargon.\n"
+        "- Keep language warm and natural.\n"
+        "- Return ONLY a JSON array of strings, no other text. Example: [\"Great opening play!\", \"Watch for back-rank threats.\"]\n\n"
+        f"Tone guidance: {tone}"
+    )
+    user = (
+        f"Player ELO bucket: {g.elo_bucket}\n"
+        f"Player color: {g.player_color}\n"
+        f"Game PGN:\n{pgn}\n\n"
+        "Produce 4-6 key takeaway bullet points as a JSON array of strings."
+    )
+
+    takeaways = []
+    try:
+        client = LLMClient()
+        import json as _json
+        raw = client.chat(
+            [{"role": "system", "content": system}, {"role": "user", "content": user}],
+            temperature=0.7,
+            max_tokens=500,
+        )
+        # Parse the JSON array from the LLM response
+        # Strip markdown code fences if present
+        cleaned = raw.strip()
+        if cleaned.startswith("```"):
+            cleaned = cleaned.split("\n", 1)[1] if "\n" in cleaned else cleaned[3:]
+            if cleaned.endswith("```"):
+                cleaned = cleaned[:-3]
+            cleaned = cleaned.strip()
+        takeaways = _json.loads(cleaned)
+        if not isinstance(takeaways, list):
+            takeaways = [str(takeaways)]
+    except Exception as e:
+        print(f"LLM review generation failed: {e}")
+        # Deterministic fallback
+        takeaways = [
+            "Good effort completing this game — every game is a chance to learn!",
+            "Review your opening moves: developing pieces early and controlling the center is key.",
+            "Watch for undefended pieces — keeping everything protected avoids easy losses.",
+            "Think about your opponent's last move before making yours.",
+            "Practice spotting checks, captures, and threats each turn.",
+        ]
+
+    return {
+        "game_id": g.id,
+        "elo_bucket": g.elo_bucket,
+        "player_color": g.player_color,
+        "takeaways": takeaways,
+    }

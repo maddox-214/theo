@@ -136,9 +136,10 @@ export async function createGame(
 export async function submitMove(
   gameId: string,
   from: string,
-  to: string
+  to: string,
+  promotion?: string
 ): Promise<MoveResponse> {
-  const moveUci = `${from}${to}`;
+  const moveUci = `${from}${to}${promotion || ''}`;
   return fetchJson<MoveResponse>(`/games/${gameId}/move`, {
     method: "POST",
     body: JSON.stringify({
@@ -161,6 +162,17 @@ export async function finishGame(gameId: string): Promise<{
   return fetchJson(`/games/${gameId}/finish`, {
     method: "POST",
   });
+}
+
+export interface GameReviewResponse {
+  game_id: string;
+  elo_bucket: number;
+  player_color: PlayerColor;
+  takeaways: string[];
+}
+
+export async function getGameReview(gameId: string): Promise<GameReviewResponse> {
+  return fetchJson<GameReviewResponse>(`/games/${gameId}/review`);
 }
 
 // ===== utility functions =====

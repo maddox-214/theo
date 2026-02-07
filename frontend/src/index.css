@@ -388,3 +388,129 @@ body {
     drop-shadow(0 10px 30px rgba(0, 0, 0, 0.7));
 }
 
+/* Review meta info (sidebar) */
+.review-meta {
+  margin-top: 16px;
+  margin-bottom: 24px;
+}
+
+.meta-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  margin-bottom: 2px;
+}
+
+.meta-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.new-lesson-sidebar-btn {
+  margin-top: auto;
+  margin-bottom: 24px;
+  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  color: #222;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.new-lesson-sidebar-btn:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Takeaways section */
+.takeaways-section {
+  width: 100%;
+  max-width: 560px;
+  margin-top: 32px;
+}
+
+.takeaways-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #fff;
+}
+
+.takeaways-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.takeaway-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 16px 18px;
+  border-radius: 10px;
+  border-left: 3px solid #d97a2b;
+  transition: background 0.2s ease;
+}
+
+.takeaway-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.takeaway-bullet {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #d97a2b;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.takeaway-text {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #e0e0e0;
+}
+
+/* Loading state */
+.takeaways-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 0;
+  opacity: 0.7;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #d97a2b;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.takeaways-error {
+  color: #d97a2b;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+  opacity: 0.8;
+}
+
