@@ -1,34 +1,45 @@
-# Theo ♟️ — Chess AI Teacher (Stockfish + LLM Coach)
+# Theo ♟️ — Your Chess AI Teacher (Stockfish + Coaching)
 
-Theo is a chess “AI teacher” that plays you at different Elo levels and teaches you along the way.  
-It uses **Stockfish** for strong, explainable analysis and an **LLM** to turn engine outputs into **human-friendly coaching** (live hints + post-game key moments).
+Theo isn’t just “play chess vs an engine.”  
+Theo plays you at the level you choose, **teaches while you play**, and then gives you a **post-game breakdown** like a real coach: what mattered, what you missed, and what to focus on next.
+
+Built for fast iteration, clean interfaces, and hackathon demos that actually feel magical.
 
 ---
 
 ## What Theo Does
 
-- **Plays vs you** at selectable difficulty (Elo buckets like 400 / 800 / 1200 / 1600 / 2000)
-- **Live coaching (during game)**: quick, actionable hints based on engine analysis
-- **Post-game review**: 3–8 key moments, blunders/misses, what to do next time
-- **Color choice**: play as **White or Black**
-- **Clean API contract** so the engine/orchestration and coaching/UI can be developed independently
+- **Plays you at different skill levels** (Elo buckets like 400 / 800 / 1200 / 1600 / 2000)
+- **You pick your color**: White or Black
+- **Live coaching (during the game)**  
+  Theo can surface quick, human hints like:
+  - “Develop your knight before grabbing that pawn.”
+  - “This move hangs your bishop because the pin breaks.”
+- **Post-game review**  
+  Theo highlights **key moments** (blunders, missed tactics, turning points) and explains them in plain English:
+  - What happened
+  - Why it mattered
+  - What you should do next time
+- **Engine-backed accuracy**  
+  Every teaching point is grounded in real analysis from Stockfish.
 
 ---
 
-## Tech Stack
+## How It Works (High Level)
 
-**Backend (Person A)**
-- FastAPI + Python
-- `python-chess` for rules/FEN/PGN
-- Stockfish (UCI) for move selection + evaluation
-- SQLite for persistence (simple hackathon-ready)
+Theo is two brains working together:
 
-**Coaching Layer (Person B)**
-- LLM client + prompt templates
-- Consumes engine payload from backend and returns coaching JSON
+1. **Stockfish** = the truth machine  
+   - Generates best moves
+   - Evaluates positions
+   - Produces candidate lines (PV) and alternatives (MultiPV)
 
-**Frontend**
-- React (Vite) chessboard UI (planned / WIP)
+2. **Coaching layer** = the translator  
+   - Turns engine numbers + lines into explanations humans can use
+   - Keeps tone consistent with your selected difficulty
+   - Powers live hints + post-game summaries
+
+Everything is delivered through a clean backend API so the frontend can stay simple and snappy.
 
 ---
 
@@ -36,15 +47,16 @@ It uses **Stockfish** for strong, explainable analysis and an **LLM** to turn en
 
 ```text
 theo/
-├─ backend/                # FastAPI + Stockfish + DB
+├─ backend/                # FastAPI + Stockfish + SQLite
 │  ├─ theo_api/
-│  │  ├─ api/              # HTTP endpoints
+│  │  ├─ api/              # HTTP endpoints (games, health, etc.)
 │  │  ├─ services/
 │  │  │  ├─ stockfish/     # UCI engine wrapper + difficulty mapping
 │  │  │  └─ storage/       # DB models + repo helpers
-│  │  └─ schemas/          # Pydantic request/response models
-├─ frontend/               # React UI (Vite)
+│  │  └─ schemas/          # Request/response models
+├─ frontend/               # React UI (Vite) (WIP)
 ├─ docs/
-│  ├─ api.md               # Contract between engine + coaching/front-end
-│  └─ architecture.md      # High-level design
+│  ├─ api.md               # API contract + payloads
+│  └─ architecture.md      # High-level design notes
 └─ engine/                 # Stockfish configs + sample positions
+
