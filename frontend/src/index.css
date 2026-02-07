@@ -125,7 +125,7 @@ body {
   aspect-ratio: 1 / 1;
   background: #2b2b2b;
   height: 600px;
-  width: 700px;
+  width: 600px;
   border-radius: 12px;
   padding: 12px;
   margin-left: 30px;
@@ -154,7 +154,14 @@ body {
 .board-overlay {
   position: absolute;
   inset: 12px;
+}
+
+.chess-piece {
+  position: absolute;
+  width: 12.5%;
+  height: 12.5%;
   pointer-events: none;
+  left: 0;
 }
 
 /* Instructor zone */
