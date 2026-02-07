@@ -7,8 +7,12 @@ import io
 from theo_api.services.storage.db import get_db
 from theo_api.services.storage import repo
 from theo_api.schemas.games import (
-    CreateGameRequest, CreateGameResponse,
-    SubmitMoveRequest, MoveResponse, AnalysisLine
+    CreateGameRequest,
+    CreateGameResponse,
+    SubmitMoveRequest,
+    MoveResponse,
+    AnalysisLine,
+    GameStateResponse,
 )
 from theo_api.services.stockfish.difficulty import clamp_bucket
 from theo_api.services.stockfish.analysis import choose_engine_reply
@@ -44,6 +48,8 @@ def _compute_pgn(game) -> str:
         board.push(move)
 
     if board.is_checkmate():
+        # If it's checkmate and it's side-to-move's turn, they are the one checkmated.
+        # So the winner is the opposite side.
         game_pgn.headers["Result"] = "1-0" if board.turn == chess.BLACK else "0-1"
     elif board.is_stalemate() or board.is_insufficient_material() or board.can_claim_draw():
         game_pgn.headers["Result"] = "1/2-1/2"
@@ -60,11 +66,46 @@ def _compute_pgn(game) -> str:
 def create_game(req: CreateGameRequest, db: Session = Depends(get_db)):
     elo_bucket = clamp_bucket(req.elo)
     g = repo.create_game(db, elo_bucket=elo_bucket, player_color=req.player_color, start_fen=START_FEN)
+
+    # If player is Black, Theo (White) should play first move automatically
+    if req.player_color == "black":
+        board = chess.Board(g.start_fen)
+        engine_reply, _analysis = choose_engine_reply(board.fen(), g.elo_bucket)
+
+        if engine_reply:
+            try:
+                move = board.parse_uci(engine_reply)
+                if move in board.legal_moves:
+                    board.push(move)
+                    g.moves_uci = engine_reply
+                    g.current_fen = board.fen()
+                    repo.save_game(db, g)
+            except ValueError:
+                pass
+
     return CreateGameResponse(
         game_id=g.id,
         start_fen=g.start_fen,
         player_color=req.player_color,
         elo_bucket=elo_bucket,
+    )
+
+
+@router.get("/{game_id}", response_model=GameStateResponse)
+def get_game_state(game_id: str, db: Session = Depends(get_db)):
+    g = repo.get_game(db, game_id)
+    if not g:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    return GameStateResponse(
+        game_id=g.id,
+        status=g.status,
+        elo_bucket=g.elo_bucket,
+        player_color=g.player_color,
+        start_fen=g.start_fen,
+        current_fen=g.current_fen,
+        moves_uci=g.moves_uci.split() if g.moves_uci.strip() else [],
+        pgn=g.pgn or "",
     )
 
 
@@ -109,13 +150,15 @@ def submit_move(game_id: str, req: SubmitMoveRequest, db: Session = Depends(get_
             fen_after=fen_after,
             engine_reply_uci=None,
             fen_after_engine=None,
-            eval_cp=None,
-            mate=None,
+            eval_white_cp=None,
+            mate_white=None,
+            eval_player_cp=None,
+            mate_player=None,
             pv=[],
             top_moves=[],
         )
 
-    # Engine reply + analysis (from the position after user's move)
+    # Engine reply + analysis (analyze position after user's move)
     engine_reply, analysis = choose_engine_reply(fen_after, g.elo_bucket)
 
     fen_after_engine = None
@@ -126,7 +169,6 @@ def submit_move(game_id: str, req: SubmitMoveRequest, db: Session = Depends(get_
                 board.push(engine_move)
                 fen_after_engine = board.fen()
             else:
-                # fallback: if reply not legal (rare), ignore
                 engine_reply = None
         except ValueError:
             engine_reply = None
@@ -140,15 +182,69 @@ def submit_move(game_id: str, req: SubmitMoveRequest, db: Session = Depends(get_
     g.current_fen = board.fen()
     repo.save_game(db, g)
 
-    # Flatten analysis payload for Person B
-    eval_cp = analysis.lines[0].eval_cp if analysis.lines else None
-    mate = analysis.lines[0].mate if analysis.lines else None
+    # ----- Build coaching payload (both White POV and Player POV) -----
+    # Raw engine best-line values
+    raw_eval = analysis.lines[0].eval_cp if analysis.lines else None
+    raw_mate = analysis.lines[0].mate if analysis.lines else None
     pv = analysis.lines[0].pv if analysis.lines and analysis.lines[0].pv else []
 
-    top_moves = []
+    analyzed_board = chess.Board(fen_after)  # this is the position Stockfish analyzed (after user's move)
+
+    # Canonical: White POV (positive means White better)
+    eval_white = raw_eval
+    mate_white = raw_mate
+    if analyzed_board.turn == chess.BLACK:
+        # Flip if engine score is from side-to-move POV
+        if eval_white is not None:
+            eval_white = -eval_white
+        if mate_white is not None:
+            mate_white = -mate_white
+
+    # Player POV: positive means USER better
+    eval_player = eval_white
+    mate_player = mate_white
+    if g.player_color == "black":
+        if eval_player is not None:
+            eval_player = -eval_player
+        if mate_player is not None:
+            mate_player = -mate_player
+
+    # top_moves: include both POVs for each candidate
+    top_moves: list[AnalysisLine] = []
     for line in analysis.lines[:3]:
-        if line.pv:
-            top_moves.append(AnalysisLine(move=line.pv[0], eval_cp=line.eval_cp, mate=line.mate))
+        if not line.pv:
+            continue
+
+        line_eval = line.eval_cp
+        line_mate = line.mate
+
+        # Convert candidate to White POV
+        line_eval_white = line_eval
+        line_mate_white = line_mate
+        if analyzed_board.turn == chess.BLACK:
+            if line_eval_white is not None:
+                line_eval_white = -line_eval_white
+            if line_mate_white is not None:
+                line_mate_white = -line_mate_white
+
+        # Convert candidate to Player POV
+        line_eval_player = line_eval_white
+        line_mate_player = line_mate_white
+        if g.player_color == "black":
+            if line_eval_player is not None:
+                line_eval_player = -line_eval_player
+            if line_mate_player is not None:
+                line_mate_player = -line_mate_player
+
+        top_moves.append(
+            AnalysisLine(
+                move=line.pv[0],
+                eval_white_cp=line_eval_white,
+                mate_white=line_mate_white,
+                eval_player_cp=line_eval_player,
+                mate_player=line_mate_player,
+            )
+        )
 
     return MoveResponse(
         game_id=g.id,
@@ -157,8 +253,10 @@ def submit_move(game_id: str, req: SubmitMoveRequest, db: Session = Depends(get_
         fen_after=fen_after,
         engine_reply_uci=engine_reply,
         fen_after_engine=fen_after_engine,
-        eval_cp=eval_cp,
-        mate=mate,
+        eval_white_cp=eval_white,
+        mate_white=mate_white,
+        eval_player_cp=eval_player,
+        mate_player=mate_player,
         pv=pv,
         top_moves=top_moves,
     )
@@ -174,18 +272,3 @@ def finish_game(game_id: str, db: Session = Depends(get_db)):
     g.status = "finished"
     repo.save_game(db, g)
     return {"game_id": g.id, "status": g.status, "pgn": g.pgn}
-@router.get("/{game_id}")
-def get_game_state(game_id: str, db: Session = Depends(get_db)):
-    g = repo.get_game(db, game_id)
-    if not g:
-        raise HTTPException(status_code=404, detail="Game not found")
-    return {
-        "game_id": g.id,
-        "status": g.status,
-        "elo_bucket": g.elo_bucket,
-        "player_color": g.player_color,
-        "start_fen": g.start_fen,
-        "current_fen": g.current_fen,
-        "moves_uci": g.moves_uci.split() if g.moves_uci.strip() else [],
-        "pgn": g.pgn,
-    }
