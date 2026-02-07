@@ -484,7 +484,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
                         style={{
                           width: '100%',
                           padding: '16px',
-                          background: '#7cb342',
+                          background: '#ff8c42',
                           border: 'none',
                           borderRadius: '8px',
                           color: '#ffffff',
@@ -495,11 +495,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
                           transition: 'all 0.2s'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#8bc34a';
+                          e.currentTarget.style.background = '#ffa366';
                           e.currentTarget.style.transform = 'translateY(-2px)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = '#7cb342';
+                          e.currentTarget.style.background = '#ff8c42';
                           e.currentTarget.style.transform = 'translateY(0)';
                         }}
                       >
