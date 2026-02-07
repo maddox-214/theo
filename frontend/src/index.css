@@ -49,6 +49,12 @@ body {
   transition: transform 0.3s ease;
 }
 
+.exp-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 /* Front pieces (middle two) */
 .level.front {
   transform: translateY(14px) scale(1.08);
@@ -118,6 +124,10 @@ body {
   align-items: center;
 }
 
+.turn-block{
+  display: flex;
+  max-width: 70px;
+}
 .board-frame {
   position: relative;
   margin-top: 10%;

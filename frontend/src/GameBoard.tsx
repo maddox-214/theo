@@ -285,19 +285,19 @@ const GameBoard: React.FC<GameBoardProps> = ({
             {isWaitingForAI ? (
               <span style={{ opacity: 0.7 }}>AI is thinking...</span>
             ) : (
-              <>
+              <div className="turn-block">
                 {game.turn() === 'w' ? "White's Turn" : "Black's Turn"}
                 {evaluation && (
                   <span style={{ 
                     marginLeft: '15px', 
                     fontSize: '1rem', 
                     opacity: 0.8,
-                    color: '#7fbf7f'
+                    color: '#ff8c42'
                   }}>
                     {evaluation}
                   </span>
                 )}
-              </>
+              </div>
             )}
           </div>
           
