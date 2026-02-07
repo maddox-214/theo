@@ -15,7 +15,7 @@ function App() {
   const [currentScreen, setCurrentScreen] = useState<'select' | 'game' | 'review'>('select');
   const [gameData, setGameData] = useState<GameData | null>(null);
   
-  const avatar = "public/images/theo_neutral.png";
+  const avatar = "public/images/theo_magical.png";
   
   const handleGameCreated = (data: GameData) => {
     setGameData(data);
