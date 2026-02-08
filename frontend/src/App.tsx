@@ -58,7 +58,7 @@ function App() {
           onNewLesson={handleBackToSelect}
         />
       )}
-    </>
+    </div>
   )
 }
 
