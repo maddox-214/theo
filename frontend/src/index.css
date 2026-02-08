@@ -51,12 +51,7 @@
   }
 }
 
-.game-root,
-.review-root,
-.container {
-  position: relative;
-  z-index: 1;
-}
+
 
 body {
   margin: 0;
@@ -158,19 +153,16 @@ body {
 .game-root {
   min-height: 91vh;
   display: flex;
-  background: linear-gradient(
-    180deg,
-    #3a2c52,
-    #1c132b
-  );
+  background:transparent; 
   color: white;
   align-items: stretch;
   position: relative;
 }
 
 .game-board-area {
-  flex: 0 0 70%;
+  flex: 0 0 60%;
   display: flex;
+  margin-top: 5%;
   justify-content: center;
   align-items: center;
   height: 600px;
@@ -182,7 +174,7 @@ body {
   position: fixed;
   top: 81px;
   right: 0;
-  background: rgba(60, 40, 90, 0.45);
+  background: transparent;;
   padding: 8px 12px;
   border-radius: 8px;
   width: 145px;
@@ -200,6 +192,7 @@ body {
 
 .move-history-title {
   margin: 0;
+  font-weight: bold;
   font-size: 0.85rem;
   color: #fff;
   font-weight: 500;
@@ -250,7 +243,7 @@ body {
   margin-top: 15%;
   width: min(90%, 560px);
   aspect-ratio: 1 / 1;
-  background: #2f2542;
+  background: transparent;
   height: 600px;
   width: 600px;
   border-radius: 12px;
@@ -347,11 +340,11 @@ body {
 
 /* Instructor zone */
 .instructor-area {
-  flex: 0 0 30%;
+  flex: 0 0 20%;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  align-items: flex-end;
+  align-items: center;
   padding: 40px 60px;
   gap: 24px;
 }
@@ -447,11 +440,7 @@ body {
   margin-top: 96px;
   display: flex;
   width: 100%;
-  background: linear-gradient(
-    180deg,
-    rgba(43, 32, 66, 0.9),
-    rgba(22, 15, 38, 0.95)
-  );
+  background:transparent;
   color: white;
   border-radius: 16px;
   overflow: hidden;
@@ -462,7 +451,7 @@ body {
 .review-sidebar {
   width: 30%;
   min-width: 240px;
-  background: rgba(60, 40, 90, 0.35);
+  background: transparent;
   color: rgba(230, 220, 255, 0.92);
   padding: 18px 20px;
   display: flex;

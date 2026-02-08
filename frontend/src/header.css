@@ -1,44 +1,51 @@
 .app-header {
   width: 100%;
-  height: 80px; /* adjust as needed */
+  height: 80px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  overflow: hidden;
+
+  box-shadow: 0 10px 30px rgba(30, 10, 60, 0.55);
+  border-bottom: 1px solid rgba(180, 150, 255, 0.15);
+
+  /* keep blur on the header itself */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* NEW: background layer with opacity */
+.app-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
   background: linear-gradient(
     180deg,
     rgba(58, 44, 82, 0.95) 0%,
     rgba(30, 22, 43, 0.92) 55%,
     rgba(20, 15, 29, 0.9) 100%
   );
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-  box-shadow: 0 10px 30px rgba(30, 10, 60, 0.55);
-  border-bottom: 1px solid rgba(180, 150, 255, 0.15);
-  z-index: 100;
-  position: absolute;
-  top: 0;
-  left: 0;
-  overflow: hidden;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+
+  opacity: 0.5;           /* <-- background opacity here */
+  pointer-events: none;
+  z-index: 0;
 }
 
+/* your existing glow layer (make sure it's above ::after) */
 .app-header::before {
   content: "";
   position: absolute;
   inset: -40px;
-  background:
-    radial-gradient(
-      900px 120px at 20% 30%,
-      rgba(180, 150, 255, 0.25),
-      transparent 60%
-    ),
-    radial-gradient(
-      700px 120px at 75% 40%,
-      rgba(160, 120, 255, 0.18),
-      transparent 55%
-    );
-  opacity: 0.9;
+  opacity: 100%;
   pointer-events: none;
- }
+  z-index: 1;
+}
 
 .app-title {
   margin: 0;
@@ -49,6 +56,7 @@
     0 0 6px rgba(160, 120, 255, 0.25);
   font-family: "Georgia", "Times New Roman", serif;
   letter-spacing: 0.12em;
+
   position: relative;
-  z-index: 1;
+  z-index: 2; /* above both pseudo-elements */
 }

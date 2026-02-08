@@ -826,17 +826,23 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
         {/* Exit button */}
         {onExit && (
-          <button
+          <button 
             onClick={onExit}
             style={{
+              position: 'absolute',
+              bottom: '-70px',
+              right: '-65px',
+              transform: 'translateX(-50%)',
               marginTop: '20px',
               padding: '10px 20px',
+              boxShadow: '0 10px 30px rgba(30, 10, 60, 0.7)',
               background: 'rgba(255, 255, 255, 0.1)',
               border: '1px solid rgba(255, 255, 255, 0.3)',
               borderRadius: '8px',
               color: '#fff',
               cursor: 'pointer',
               fontSize: '1rem'
+              
             }}
           >
             Back to Menu
