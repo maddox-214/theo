@@ -217,8 +217,39 @@ body {
   position: relative;
 }
 
+.square-rank-label,
+.square-file-label {
+  position: absolute;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0.55;
+  user-select: none;
+  pointer-events: none;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.square-rank-label {
+  top: 4px;
+  left: 4px;
+  color: rgba(30, 22, 43, 0.65);
+}
+
+.square-file-label {
+  bottom: 4px;
+  right: 4px;
+  color: rgba(30, 22, 43, 0.65);
+}
+
 .square.dark {
   background: #9c8fb8;
+}
+
+.square.dark .square-rank-label,
+.square.dark .square-file-label {
+  color: rgba(230, 220, 255, 0.7);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
 }
 
 .square.selected {
