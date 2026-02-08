@@ -1,0 +1,93 @@
+/* Scoped styles for Chess Piece Guide page */
+.root {
+  min-height: 100vh;
+  width: 100vw;
+  background: var(--bg-color, #e9e9f6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  max-width: 900px;
+  width: 100%;
+  padding: 40px 32px 80px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.title {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 28px;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+.controls {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 36px;
+  background: #f7f7fa;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  padding: 16px 28px;
+  align-items: center;
+}
+.controls label {
+  font-weight: 500;
+  color: #333;
+  font-size: 1.05rem;
+}
+.controls select {
+  margin-left: 8px;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #bbb;
+  font-size: 1rem;
+  background: #fff;
+  color: #222;
+}
+.checkbox {
+  display: flex;
+  align-items: center;
+}
+.checkbox input {
+  margin-right: 8px;
+}
+
+.cardSection {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 32px;
+}
+
+.footer {
+  margin-top: 32px;
+  color: #666;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.backBtn {
+  margin-top: 36px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  background: #2d2d2d;
+  color: #fff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.backBtn:hover {
+  background: #444;
+}
