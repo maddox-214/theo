@@ -503,7 +503,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
                 left: 0,
                 right: 0,
                 bottom: 0,
-                background: 'rgba(0, 0, 0, 0.85)',
+                background: 'rgba(10, 6, 18, 0.88)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -511,11 +511,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
                 borderRadius: '8px'
               }}>
                 <div style={{
-                  background: '#3a3a3a',
+                  background: 'rgba(43, 32, 66, 0.92)',
                   padding: '50px 60px',
                   borderRadius: '12px',
                   textAlign: 'center',
-                  minWidth: '400px'
+                  minWidth: '400px',
+                  border: '1px solid rgba(180, 150, 255, 0.18)',
+                  boxShadow: '0 30px 60px rgba(20, 10, 40, 0.75)'
                 }}>
                   {/* Title */}
                   <h2 style={{ 
@@ -535,7 +537,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
                   {/* Subtitle - outcome type */}
                   <p style={{ 
                     fontSize: '1.1rem', 
-                    color: '#b0b0b0',
+                    color: 'rgba(230, 220, 255, 0.72)',
                     marginBottom: '40px',
                     fontWeight: '400'
                   }}>
@@ -558,22 +560,23 @@ const GameBoard: React.FC<GameBoardProps> = ({
                         style={{
                           width: '100%',
                           padding: '16px',
-                          background: '#ff8c42',
-                          border: 'none',
+                          background: 'rgba(160, 120, 255, 0.32)',
+                          border: '1px solid rgba(180, 150, 255, 0.22)',
                           borderRadius: '8px',
                           color: '#ffffff',
                           cursor: 'pointer',
                           fontSize: '1.2rem',
                           fontWeight: '600',
                           marginBottom: '15px',
-                          transition: 'all 0.2s'
+                          transition: 'all 0.2s',
+                          boxShadow: '0 14px 30px rgba(30, 10, 60, 0.35)'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#8bc34a';
+                          e.currentTarget.style.background = 'rgba(160, 120, 255, 0.5)';
                           e.currentTarget.style.transform = 'translateY(-2px)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = '#ff8c42';
+                          e.currentTarget.style.background = 'rgba(160, 120, 255, 0.32)';
                           e.currentTarget.style.transform = 'translateY(0)';
                         }}
                       >
@@ -587,8 +590,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
                             style={{
                               flex: 1,
                               padding: '12px',
-                              background: '#5a5a5a',
-                              border: 'none',
+                              background: 'rgba(255, 255, 255, 0.08)',
+                              border: '1px solid rgba(180, 150, 255, 0.18)',
                               borderRadius: '8px',
                               color: '#ffffff',
                               cursor: 'pointer',
@@ -597,10 +600,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
                               transition: 'all 0.2s'
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.background = '#6a6a6a';
+                              e.currentTarget.style.background = 'rgba(160, 120, 255, 0.18)';
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.background = '#5a5a5a';
+                              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
                             }}
                           >
                             Main Menu
@@ -615,8 +618,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
                           style={{
                             flex: 1,
                             padding: '12px',
-                            background: '#5a5a5a',
-                            border: 'none',
+                            background: 'rgba(255, 255, 255, 0.08)',
+                            border: '1px solid rgba(180, 150, 255, 0.18)',
                             borderRadius: '8px',
                             color: '#ffffff',
                             cursor: 'pointer',
@@ -625,10 +628,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
                             transition: 'all 0.2s'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#6a6a6a';
+                            e.currentTarget.style.background = 'rgba(160, 120, 255, 0.18)';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.background = '#5a5a5a';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
                           }}
                         >
                           Rematch
@@ -646,22 +649,23 @@ const GameBoard: React.FC<GameBoardProps> = ({
                         style={{
                           width: '100%',
                           padding: '16px',
-                          background: '#ff8c42',
-                          border: 'none',
+                          background: 'rgba(160, 120, 255, 0.32)',
+                          border: '1px solid rgba(180, 150, 255, 0.22)',
                           borderRadius: '8px',
                           color: '#ffffff',
                           cursor: 'pointer',
                           fontSize: '1.2rem',
                           fontWeight: '600',
                           marginBottom: '15px',
-                          transition: 'all 0.2s'
+                          transition: 'all 0.2s',
+                          boxShadow: '0 14px 30px rgba(30, 10, 60, 0.35)'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#f69456';
+                          e.currentTarget.style.background = 'rgba(160, 120, 255, 0.5)';
                           e.currentTarget.style.transform = 'translateY(-2px)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = '#ff8c42';
+                          e.currentTarget.style.background = 'rgba(160, 120, 255, 0.32)';
                           e.currentTarget.style.transform = 'translateY(0)';
                         }}
                       >
@@ -675,8 +679,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
                             style={{
                               flex: 1,
                               padding: '12px',
-                              background: '#5a5a5a',
-                              border: 'none',
+                              background: 'rgba(255, 255, 255, 0.08)',
+                              border: '1px solid rgba(180, 150, 255, 0.18)',
                               borderRadius: '8px',
                               color: '#ffffff',
                               cursor: 'pointer',
@@ -685,10 +689,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
                               transition: 'all 0.2s'
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.background = '#6a6a6a';
+                              e.currentTarget.style.background = 'rgba(160, 120, 255, 0.18)';
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.background = '#5a5a5a';
+                              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
                             }}
                           >
                             Main Menu
@@ -707,8 +711,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
                           style={{
                             flex: 1,
                             padding: '12px',
-                            background: '#5a5a5a',
-                            border: 'none',
+                            background: 'rgba(255, 255, 255, 0.08)',
+                            border: '1px solid rgba(180, 150, 255, 0.18)',
                             borderRadius: '8px',
                             color: '#ffffff',
                             cursor: 'pointer',
@@ -717,10 +721,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
                             transition: 'all 0.2s'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#6a6a6a';
+                            e.currentTarget.style.background = 'rgba(160, 120, 255, 0.18)';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.background = '#5a5a5a';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
                           }}
                         >
                           Game Review
@@ -803,7 +807,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
         {/* Speech / dialogue box */}
         <div className="speech-box">
           <span className="quote left">“</span>
-          <p>{dialog}</p>
+          <div className="speech-box-content">
+            <p>{dialog}</p>
+          </div>
           <span className="quote right">”</span>
         </div>
 
